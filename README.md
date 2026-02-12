@@ -1,6 +1,6 @@
  Dragon Management System
  
- A. Project OverviewThis project is a sophisticated RESTful API built with Spring Boot, migrated from a legacy console application. It serves as a management system for a dragon registry, tracking species, stamina, and pricing. The system architecture is designed to be extensible, following modern backend standards and the concepts explored during the BioSense Rover robotics project in February 2026.
+ A. Project OverviewThis project is a sophisticated RESTful API built with Spring Boot, migrated from a legacy console application. It serves as a management system for a dragon registry, tracking species, stamina, and pricing.
  
  B. REST API DocumentationBase URL: http://localhost:8080/api/dragonsSample Response (JSON):(Postman screenshots can be found in /docs/screenshots/)
  

@@ -1,6 +1,6 @@
-package com.berk.dragons.exception; // <--- НОВЫЙ ПАКЕТ
+package com.berk.dragons.exception;
 
-import com.berk.dragons.patterns.SystemLogger; // <--- ОБЯЗАТЕЛЬНО ИМПОРТИРУЙ
+import com.berk.dragons.patterns.SystemLogger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -15,7 +15,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllExceptions(Exception ex) {
-        // Логируем ошибку через наш Singleton
         SystemLogger.getInstance().error("Exception caught: " + ex.getMessage());
 
         Map<String, Object> body = new HashMap<>();
@@ -31,9 +30,21 @@ public class GlobalExceptionHandler {
 
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", "Dragon with this name already exists!"); // Понятное сообщение
+        body.put("message", "Dragon with this name already exists!");
         body.put("status", HttpStatus.CONFLICT.value());
 
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT); // Возвращаем 409
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<Object> handleInvalidInput(InvalidInputException ex) {
+        SystemLogger.getInstance().error("Invalid input: " + ex.getMessage());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", ex.getMessage());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }

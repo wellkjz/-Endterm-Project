@@ -17,7 +17,6 @@ public class DragonRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // RowMapper превращает строки SQL в объекты Java, используя FACTORY PATTERN
     private final RowMapper<DragonBase> dragonMapper = (rs, rowNum) -> {
         return DragonFactory.createDragon(
                 rs.getString("type"),
@@ -40,7 +39,6 @@ public class DragonRepository {
 
     public void save(DragonBase dragon) {
         String sql = "INSERT INTO dragons (name, type, stamina, base_price) VALUES (?, ?, ?, ?)";
-        // Определяем тип для БД
         String typeStr = dragon.getSpeciesType().contains("Strike") ? "Lightning" : "Fire";
         jdbcTemplate.update(sql, dragon.getName(), typeStr, dragon.getStamina(), dragon.getBasePrice());
     }

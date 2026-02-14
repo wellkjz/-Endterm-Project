@@ -1,6 +1,6 @@
-package com.berk.dragons.dto; // <--- НОВЫЙ ПАКЕТ
+package com.berk.dragons.dto;
 
-import com.berk.dragons.model.DragonBase; // <--- ИМПОРТ
+import com.berk.dragons.model.DragonBase;
 
 public class DragonResponseDto {
     private final int id;

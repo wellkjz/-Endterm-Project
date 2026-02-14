@@ -17,6 +17,6 @@ public class FireBreather extends DragonBase {
 
     @Override
     public double calculateFinalPrice() {
-        return getBasePrice(); // Стандартная цена
+        return getBasePrice();
     }
 }

@@ -1,6 +1,6 @@
-package com.berk.dragons.utils; // <--- НОВЫЙ ПАКЕТ
+package com.berk.dragons.utils;
 
-import com.berk.dragons.model.DragonBase; // <--- НУЖЕН ИМПОРТ
+import com.berk.dragons.model.DragonBase;
 import java.util.List;
 
 public class SortingUtils {

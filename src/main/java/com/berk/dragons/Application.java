@@ -1,4 +1,4 @@
-package com.berk.dragons; // Твой главный пакет
+package com.berk.dragons;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

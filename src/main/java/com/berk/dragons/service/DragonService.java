@@ -3,23 +3,42 @@ package com.berk.dragons.service;
 import com.berk.dragons.dto.DragonRequestDto;
 import com.berk.dragons.model.DragonBase;
 import com.berk.dragons.patterns.DragonBuilder;
+import com.berk.dragons.patterns.InMemoryCache;
 import com.berk.dragons.patterns.SystemLogger;
 import com.berk.dragons.repository.DragonRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
 public class DragonService {
     private final DragonRepository repository;
 
+    private static final String CACHE_KEY_ALL_DRAGONS = "dragons:all";
+    private static final Duration ALL_DRAGONS_TTL = Duration.ofMinutes(5); // можешь поставить null если не нужен TTL
+
     public DragonService(DragonRepository repository) {
         this.repository = repository;
     }
 
     public List<DragonBase> getAllDragons() {
-        SystemLogger.getInstance().info("Fetching all dragons");
-        return repository.findAll();
+        SystemLogger.getInstance().info("Fetching all dragons (with cache)");
+
+        InMemoryCache cache = InMemoryCache.getInstance();
+
+        @SuppressWarnings("unchecked")
+        var cached = cache.get(CACHE_KEY_ALL_DRAGONS, List.class);
+        if (cached.isPresent()) {
+            SystemLogger.getInstance().info("CACHE HIT: " + CACHE_KEY_ALL_DRAGONS);
+            return (List<DragonBase>) cached.get();
+        }
+
+        SystemLogger.getInstance().info("CACHE MISS: " + CACHE_KEY_ALL_DRAGONS + " -> querying DB");
+        List<DragonBase> result = repository.findAll();
+        cache.put(CACHE_KEY_ALL_DRAGONS, result, ALL_DRAGONS_TTL);
+
+        return result;
     }
 
     public DragonBase getDragonById(int id) {
@@ -32,8 +51,11 @@ public class DragonService {
                 .setType(dto.getType())
                 .setPrice(dto.getPrice())
                 .build();
+
         repository.save(dragon);
         SystemLogger.getInstance().info("Created dragon: " + dto.getName());
+
+        InMemoryCache.getInstance().invalidate(CACHE_KEY_ALL_DRAGONS);
     }
 
     public void updateDragon(int id, DragonRequestDto dto) {
@@ -42,10 +64,14 @@ public class DragonService {
             existing.setName(dto.getName());
             existing.setBasePrice(dto.getPrice());
             repository.update(existing);
+
+            InMemoryCache.getInstance().invalidate(CACHE_KEY_ALL_DRAGONS);
         }
     }
 
     public void deleteDragon(int id) {
         repository.delete(id);
+
+        InMemoryCache.getInstance().invalidate(CACHE_KEY_ALL_DRAGONS);
     }
 }

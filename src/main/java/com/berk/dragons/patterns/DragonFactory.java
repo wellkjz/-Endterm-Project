@@ -9,7 +9,6 @@ public class DragonFactory {
         } else if ("Fire".equalsIgnoreCase(type)) {
             return new FireBreather(id, name, stamina, price);
         } else {
-            // Default fallback
             return new FireBreather(id, name, stamina, price);
         }
     }

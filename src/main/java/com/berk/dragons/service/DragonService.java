@@ -9,14 +9,17 @@ import com.berk.dragons.repository.DragonRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DragonService {
+
     private final DragonRepository repository;
 
     private static final String CACHE_KEY_ALL_DRAGONS = "dragons:all";
-    private static final Duration ALL_DRAGONS_TTL = Duration.ofMinutes(5); // можешь поставить null если не нужен TTL
+    private static final Duration ALL_DRAGONS_TTL = Duration.ofMinutes(5);
 
     public DragonService(DragonRepository repository) {
         this.repository = repository;
@@ -27,16 +30,18 @@ public class DragonService {
 
         InMemoryCache cache = InMemoryCache.getInstance();
 
-        @SuppressWarnings("unchecked")
-        var cached = cache.get(CACHE_KEY_ALL_DRAGONS, List.class);
+        Optional<ArrayList> cached = cache.get(CACHE_KEY_ALL_DRAGONS, ArrayList.class);
         if (cached.isPresent()) {
             SystemLogger.getInstance().info("CACHE HIT: " + CACHE_KEY_ALL_DRAGONS);
-            return (List<DragonBase>) cached.get();
+            @SuppressWarnings("unchecked")
+            List<DragonBase> result = (List<DragonBase>) cached.get();
+            return result;
         }
 
         SystemLogger.getInstance().info("CACHE MISS: " + CACHE_KEY_ALL_DRAGONS + " -> querying DB");
         List<DragonBase> result = repository.findAll();
-        cache.put(CACHE_KEY_ALL_DRAGONS, result, ALL_DRAGONS_TTL);
+
+        cache.put(CACHE_KEY_ALL_DRAGONS, new ArrayList<>(result), ALL_DRAGONS_TTL);
 
         return result;
     }

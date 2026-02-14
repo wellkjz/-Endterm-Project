@@ -9,7 +9,9 @@ import com.berk.dragons.repository.RiderRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RiderService {
@@ -23,28 +25,26 @@ public class RiderService {
         this.repository = repository;
     }
 
-
     public List<Rider> getAllRiders() {
         SystemLogger.getInstance().info("Fetching all riders (with cache)");
 
         InMemoryCache cache = InMemoryCache.getInstance();
 
-        @SuppressWarnings("unchecked")
-        var cached = cache.get(CACHE_KEY_ALL_RIDERS, List.class);
-
+        Optional<ArrayList> cached = cache.get(CACHE_KEY_ALL_RIDERS, ArrayList.class);
         if (cached.isPresent()) {
             SystemLogger.getInstance().info("CACHE HIT: " + CACHE_KEY_ALL_RIDERS);
-            return (List<Rider>) cached.get();
+            @SuppressWarnings("unchecked")
+            List<Rider> result = (List<Rider>) cached.get();
+            return result;
         }
 
         SystemLogger.getInstance().info("CACHE MISS: " + CACHE_KEY_ALL_RIDERS + " -> querying DB");
-
         List<Rider> result = repository.findAll();
-        cache.put(CACHE_KEY_ALL_RIDERS, result, ALL_RIDERS_TTL);
+
+        cache.put(CACHE_KEY_ALL_RIDERS, new ArrayList<>(result), ALL_RIDERS_TTL);
 
         return result;
     }
-
 
     public Rider getRiderById(int id) {
         return repository.findById(id);
@@ -61,18 +61,15 @@ public class RiderService {
         InMemoryCache.getInstance().invalidate(CACHE_KEY_ALL_RIDERS);
     }
 
-
     public void updateRider(int id, RiderRequestDto dto) {
         validate(dto);
 
         Rider existing = repository.findById(id);
-
         if (existing != null) {
             Rider updated = new Rider(id, dto.getName().trim(), dto.getSkillLevel());
             repository.update(updated);
 
             SystemLogger.getInstance().info("Updated rider id=" + id);
-
             InMemoryCache.getInstance().invalidate(CACHE_KEY_ALL_RIDERS);
         }
     }
@@ -81,17 +78,13 @@ public class RiderService {
         repository.delete(id);
 
         SystemLogger.getInstance().info("Deleted rider id=" + id);
-
         InMemoryCache.getInstance().invalidate(CACHE_KEY_ALL_RIDERS);
     }
 
     private void validate(RiderRequestDto dto) {
-        if (dto == null)
-            throw new InvalidInputException("Request body cannot be null.");
-
+        if (dto == null) throw new InvalidInputException("Request body cannot be null.");
         if (dto.getName() == null || dto.getName().trim().isEmpty())
             throw new InvalidInputException("Rider name cannot be empty.");
-
         if (dto.getSkillLevel() < 1 || dto.getSkillLevel() > 10)
             throw new InvalidInputException("Skill level must be between 1 and 10.");
     }
